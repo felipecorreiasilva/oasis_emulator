@@ -1,0 +1,14 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/core/">
+    <Project Path="src/common/common.vcxproj" Id="f7397e2a-3ad3-432b-8c74-7e084593c478" />
+  </Folder>
+  <Folder Name="/server-components/">
+    <Project Path="src/char/char.vcxproj" Id="d4788e62-1db5-4701-8852-08661e967fc6" />
+    <Project Path="src/login/login.vcxproj" Id="e89942bf-bc04-46ae-bf7c-1e6d90fbe7d7" />
+    <Project Path="src/map/map.vcxproj" Id="1874a1f3-261f-4db7-a75e-bcd6cffab1f4" />
+  </Folder>
+</Solution>
