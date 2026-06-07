@@ -71,6 +71,7 @@ int main() {
     std::cout << "[OasisLogin] Conectado ao banco '" << db_name << "' com sucesso!" << std::endl;
 
     // 4. Vincula a função de processamento de pacotes que mora no loginclif.cpp
+    // Agora compila perfeitamente porque as duas assinaturas exigem apenas (int, SessionData&)
     default_parse_func = parse_login;
 
     // 5. Abre a porta 6900 para escuta de pacotes (Unity, Char-Server, etc.)
