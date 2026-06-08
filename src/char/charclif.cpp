@@ -44,24 +44,23 @@ int parse_char(int fd, SessionData& session) {
         return sizeof(p_ca_charlist);
     }
 
-    case HEADER_CA_SELECT_CHAR: {
-        if (session.rdata.size() < sizeof(p_ca_select_char)) {
+    case HEADER_CH_SELECT_CHAR: {
+        if (session.rdata.size() < sizeof(p_ch_select_char)) {
             return 0;
         }
 
-        p_ca_select_char* req = reinterpret_cast<p_ca_select_char*>(session.rdata.data());
-        std::cout << "[OasisChar] Personagem selecionado: " << req->char_id << std::endl;
+        p_ch_select_char* req = reinterpret_cast<p_ch_select_char*>(session.rdata.data());
+        std::cout << "[OasisChar] Slot de personagem selecionado: " << static_cast<int>(req->slot) << std::endl;
 
-        p_ac_select_char response{};
-        response.packet_id = HEADER_AC_SELECT_CHAR;
-        response.status = 1;
-        response.char_id = req->char_id;
-        response.map_id = 1;
-        response.x = 150;
-        response.y = 120;
+        p_hc_notify_zonesvr response{};
+        response.packet_id = HEADER_HC_NOTIFY_ZONESVR;
+        response.char_id = 1001;
+        std::memcpy(response.mapname, "prt_fild01", sizeof(response.mapname));
+        response.ip = 0x0100007F; // 127.0.0.1 little-endian
+        response.port = 6902;
 
         session_write(session, &response, sizeof(response));
-        return sizeof(p_ca_select_char);
+        return sizeof(p_ch_select_char);
     }
 
     default:
