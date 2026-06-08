@@ -71,6 +71,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{f7397e2a-3ad3-432b-8c74-7e084593c478}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)3rdparty\mysql\include</IncludePath>
@@ -180,6 +185,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="map.cpp" />
+    <ClCompile Include="mapclif.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mapclif.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

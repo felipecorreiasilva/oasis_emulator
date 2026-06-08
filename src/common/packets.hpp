@@ -13,8 +13,14 @@ enum e_packet_id : uint16_t {
 
     // Oficiais/Adaptados (Exemplo de mapeamento do rAthena)
     HEADER_CA_LOGIN = 0x0064, // Cliente requisitando Login (Tradicional 0x0064)
+    HEADER_CA_CHARLIST = 0x0065, // Cliente requisita lista de personagens
+    HEADER_AC_CHARLIST = 0x0066, // Servidor responde com lista de personagens
+    HEADER_CA_SELECT_CHAR = 0x0067, // Cliente seleciona personagem
+    HEADER_AC_SELECT_CHAR = 0x0068, // Servidor confirma personagem selecionado
     HEADER_AC_ACCEPT_LOGIN = 0x0069, // Login aceito, envia lista de Char-Servers
-    HEADER_AC_REFUSE_LOGIN = 0x006a  // Login recusado (Senha errada, banido, etc)
+    HEADER_AC_REFUSE_LOGIN = 0x006a, // Login recusado (Senha errada, banido, etc)
+    HEADER_CA_ENTER_MAP = 0x006b, // Cliente solicita entrada no mapa
+    HEADER_AC_ENTER_MAP = 0x006c  // Servidor confirma entrada no mapa
 };
 
 #pragma pack(push, 1)
@@ -48,6 +54,55 @@ struct p_ac_accept_login {
 struct p_ac_refuse_login {
     uint16_t packet_id;       // HEADER_AC_REFUSE_LOGIN
     uint8_t error_code;        // Código do erro (0: Senha incorreta, 1: Conta Inexistente, 6: Banido)
+};
+
+struct p_ca_charlist {
+    uint16_t packet_id;       // HEADER_CA_CHARLIST
+    uint32_t user_id;         // ID da conta autenticada
+};
+
+struct p_ac_charlist_header {
+    uint16_t packet_id;       // HEADER_AC_CHARLIST
+    uint8_t count;            // Número de personagens enviados
+};
+
+struct p_ac_charlist_entry {
+    uint32_t char_id;         // ID interno do personagem
+    char name[24];            // Nome do personagem
+    uint8_t level;            // Nível do personagem
+    uint16_t map_id;          // Mapa inicial
+    uint16_t x;               // Posição X inicial
+    uint16_t y;               // Posição Y inicial
+};
+
+struct p_ca_select_char {
+    uint16_t packet_id;       // HEADER_CA_SELECT_CHAR
+    uint32_t char_id;         // Personagem selecionado
+};
+
+struct p_ac_select_char {
+    uint16_t packet_id;       // HEADER_AC_SELECT_CHAR
+    uint8_t status;           // 1 = aceito, 0 = recusado
+    uint32_t char_id;         // ID do personagem selecionado
+    uint16_t map_id;          // Mapa de entrada
+    uint16_t x;               // Posição X de spawn
+    uint16_t y;               // Posição Y de spawn
+};
+
+struct p_ca_enter_map {
+    uint16_t packet_id;       // HEADER_CA_ENTER_MAP
+    uint32_t char_id;         // Personagem entrando no mapa
+    uint16_t map_id;          // Mapa solicitado
+    uint16_t x;               // Posição X desejada
+    uint16_t y;               // Posição Y desejada
+};
+
+struct p_ac_enter_map {
+    uint16_t packet_id;       // HEADER_AC_ENTER_MAP
+    uint8_t status;           // 1 = aceito, 0 = recusado
+    uint16_t map_id;          // Mapa aceito
+    uint16_t x;               // Posição X de entrada
+    uint16_t y;               // Posição Y de entrada
 };
 
 #pragma pack(pop)
