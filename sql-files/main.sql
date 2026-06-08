@@ -53,7 +53,3 @@ VALUES (1, 's1', 'p1', 'S', 'athena@athena.com');
 -- Inserindo uma conta de testes normal para você testar na Unity depois
 INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `group_id`)
 VALUES (2000000, 'oasis', '123', 'M', 'player@oasis.com', 0);
-
--- Inserindo um personagem de teste para a conta Oasis usando last_x/last_y/last_z
-INSERT INTO `char` (`account_id`, `name`, `base_level`, `job`, `map_id`, `last_x`, `last_y`, `last_z`, `hair`, `sex`, `zeny`, `state`)
-VALUES (2000000, 'OasisHero', 1, 0, 1, 150.0, 120.0, 0.0, 0, 'M', 0, 0);
