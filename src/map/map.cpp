@@ -42,7 +42,7 @@ int main() {
     std::cout << "==================================================" << std::endl;
 
     std::map<std::string, std::string> conf = read_config("conf/map_oasis.conf");
-    int port = conf.count("map_server_port") ? std::stoi(conf["map_server_port"]) : 6902;
+    int port = conf.count("map_port") ? std::stoi(conf["map_port"]) : 5121;
 
     std::cout << "[OasisMap] Porta configurada: " << port << std::endl;
 

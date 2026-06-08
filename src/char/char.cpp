@@ -1,11 +1,15 @@
 #include "../common/socket.hpp"
+#include "../common/sql.hpp"
 #include "charclif.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <map>
 
-std::map<std::string, std::string> read_config(const std::string& filename) {
+// Instância global do banco de dados para o Char Server usar
+Sql db_handle;
+
+std::map<std::string, std::string> read_config(const std::string&filename) {
     std::map<std::string, std::string> config;
     std::ifstream file(filename);
     std::string line;
@@ -42,9 +46,22 @@ int main() {
     std::cout << "==================================================" << std::endl;
 
     std::map<std::string, std::string> conf = read_config("conf/char_oasis.conf");
-    int port = conf.count("char_server_port") ? std::stoi(conf["char_server_port"]) : 6901;
+    int port = conf.count("char_port") ? std::stoi(conf["char_port"]) : 6121;
+
+    std::string db_ip = conf.count("char_db_ip") ? conf["char_db_ip"] : "127.0.0.1";
+    std::string db_user = conf.count("char_db_id") ? conf["char_db_id"] : "root";
+    std::string db_pass = conf.count("char_db_pw") ? conf["char_db_pw"] : "";
+    std::string db_name = conf.count("char_db_db") ? conf["char_db_db"] : "oasis_db";
+    int db_port = conf.count("char_db_port") ? std::stoi(conf["char_db_port"]) : 3306;
 
     std::cout << "[OasisChar] Porta configurada: " << port << std::endl;
+    std::cout << "[OasisChar] Conectando ao banco em " << db_ip << ":" << db_port << "..." << std::endl;
+    if (!db_handle.connect(db_ip, db_user, db_pass, db_name, db_port)) {
+        std::cerr << "[OasisChar] [Erro Critico] Falha na conexao com o banco de dados!" << std::endl;
+        oasis_socket_shutdown();
+        return 1;
+    }
+    std::cout << "[OasisChar] Conectado ao banco '" << db_name << "' com sucesso!" << std::endl;
 
     default_parse_func = parse_char;
 
@@ -58,6 +75,7 @@ int main() {
     std::cout << "[OasisChar] Char Server online. Aguardando conexoes..." << std::endl;
     do_sockets_main_loop(listen_fd);
 
+    db_handle.close();
     oasis_socket_shutdown();
     return 0;
 }

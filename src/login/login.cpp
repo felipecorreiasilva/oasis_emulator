@@ -60,6 +60,7 @@ int main() {
     std::string db_pass = conf.count("login_db_pw") ? conf["login_db_pw"] : "";
     std::string db_name = conf.count("login_db_db") ? conf["login_db_db"] : "oasis_db";
     int db_port = conf.count("login_db_port") ? std::stoi(conf["login_db_port"]) : 3306;
+    int login_port = conf.count("login_port") ? std::stoi(conf["login_port"]) : 6900;
 
     // 3. Conecta ao MySQL do XAMPP
     std::cout << "[OasisLogin] Conectando ao banco em " << db_ip << ":" << db_port << "..." << std::endl;
@@ -74,10 +75,10 @@ int main() {
     // Agora compila perfeitamente porque as duas assinaturas exigem apenas (int, SessionData&)
     default_parse_func = parse_login;
 
-    // 5. Abre a porta 6900 para escuta de pacotes (Unity, Char-Server, etc.)
-    socket_t listen_fd = make_listen_bind("ANY", 6900);
+    // 5. Abre a porta configurada para escuta de pacotes
+    socket_t listen_fd = make_listen_bind("ANY", static_cast<uint16_t>(login_port));
     if (listen_fd == INVALID_SOCKET) {
-        std::cerr << "[OasisLogin] Nao foi possivel alocar a porta 6900." << std::endl;
+        std::cerr << "[OasisLogin] Nao foi possivel alocar a porta " << login_port << "." << std::endl;
         db_handle.close();
         oasis_socket_shutdown();
         return 1;

@@ -71,8 +71,8 @@ struct p_ac_charlist_entry {
     char name[24];            // Nome do personagem
     uint8_t level;            // Nível do personagem
     uint16_t map_id;          // Mapa inicial
-    uint16_t x;               // Posição X inicial
-    uint16_t y;               // Posição Y inicial
+    float x;                  // Posição X inicial
+    float y;                  // Posição Y inicial
 };
 
 struct p_ch_select_char {
@@ -92,16 +92,16 @@ struct p_ca_enter_map {
     uint16_t packet_id;       // HEADER_CA_ENTER_MAP
     uint32_t char_id;         // Personagem entrando no mapa
     uint16_t map_id;          // Mapa solicitado
-    uint16_t x;               // Posição X desejada
-    uint16_t y;               // Posição Y desejada
+    float x;                  // Posição X desejada
+    float y;                  // Posição Y desejada
 };
 
 struct p_ac_enter_map {
     uint16_t packet_id;       // HEADER_AC_ENTER_MAP
     uint8_t status;           // 1 = aceito, 0 = recusado
     uint16_t map_id;          // Mapa aceito
-    uint16_t x;               // Posição X de entrada
-    uint16_t y;               // Posição Y de entrada
+    float x;                  // Posição X de entrada
+    float y;                  // Posição Y de entrada
 };
 
 #pragma pack(pop)

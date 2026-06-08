@@ -21,6 +21,7 @@ struct SessionData {
     socket_t fd;
     std::string ip;
     uint16_t port;
+    uint32_t account_id = 0; // Conta autenticada vinculada ao cliente
 
     // FIFO Buffers usando vetores pré-alocados para evitar reallocs em runtime
     std::vector<uint8_t> rdata;
