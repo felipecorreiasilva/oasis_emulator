@@ -32,7 +32,7 @@ int parse_char(int fd, SessionData& session) {
         session.account_id = req->user_id;
         std::cout << "[OasisChar] Requisicao de charlist para user_id: " << req->user_id << std::endl;
 
-        std::string query = "SELECT char_id, name, base_level, map_id, x, y FROM `char` WHERE account_id = " + std::to_string(req->user_id) + " ORDER BY char_id ASC LIMIT 16";
+        std::string query = "SELECT char_id, name, base_level, map_id, last_x, last_y, last_z FROM `char` WHERE account_id = " + std::to_string(req->user_id) + " ORDER BY char_id ASC LIMIT 16";
         if (!db_handle.query_select(query)) {
             std::cerr << "[OasisChar] Erro ao buscar charlist no banco de dados." << std::endl;
             return -1;
@@ -48,6 +48,8 @@ int parse_char(int fd, SessionData& session) {
             entry.map_id = static_cast<uint16_t>(std::stoi(row[3] ? row[3] : "1"));
             entry.x = std::stof(row[4] ? row[4] : "150.0");
             entry.y = std::stof(row[5] ? row[5] : "120.0");
+            float z = std::stof(row[6] ? row[6] : "0.0");
+            (void)z; // Por enquanto o pacote usa apenas x/y, mas o campo last_z já está disponível
             entries.push_back(entry);
         }
 
@@ -76,7 +78,7 @@ int parse_char(int fd, SessionData& session) {
             return sizeof(p_ch_select_char);
         }
 
-        std::string query = "SELECT char_id, map_id, x, y FROM `char` WHERE account_id = " + std::to_string(session.account_id) + " ORDER BY char_id ASC LIMIT 1 OFFSET " + std::to_string(req->slot);
+        std::string query = "SELECT char_id, map_id, last_x, last_y, last_z FROM `char` WHERE account_id = " + std::to_string(session.account_id) + " ORDER BY char_id ASC LIMIT 1 OFFSET " + std::to_string(req->slot);
         if (!db_handle.query_select(query)) {
             std::cerr << "[OasisChar] Erro ao buscar personagem selecionado no banco." << std::endl;
             return sizeof(p_ch_select_char);
