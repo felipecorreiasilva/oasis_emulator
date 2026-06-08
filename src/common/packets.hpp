@@ -15,6 +15,8 @@ enum e_packet_id : uint16_t {
     HEADER_CA_LOGIN = 0x0064, // Cliente requisitando Login (Tradicional 0x0064)
     HEADER_CA_CHARLIST = 0x0065, // Cliente requisita lista de personagens (custom)
     HEADER_CH_SELECT_CHAR = 0x0066, // Cliente seleciona personagem (rAthena compatível)
+    HEADER_CA_ENTER_MAP = 0x006b, // Cliente solicita entrada no mapa
+    HEADER_AC_ENTER_MAP = 0x006c, // Servidor confirma entrada no mapa
     HEADER_AC_CHARLIST = 0x00A0, // Servidor responde com lista de personagens (custom)
     HEADER_AC_ACCEPT_LOGIN = 0x0069, // Login aceito, envia lista de Char-Servers
     HEADER_AC_REFUSE_LOGIN = 0x006a, // Login recusado (Senha errada, banido, etc)
@@ -84,6 +86,22 @@ struct p_hc_notify_zonesvr {
     char mapname[16];         // Nome do mapa destino
     uint32_t ip;              // IP do Map Server
     uint16_t port;            // Porta do Map Server
+};
+
+struct p_ca_enter_map {
+    uint16_t packet_id;       // HEADER_CA_ENTER_MAP
+    uint32_t char_id;         // Personagem entrando no mapa
+    uint16_t map_id;          // Mapa solicitado
+    uint16_t x;               // Posição X desejada
+    uint16_t y;               // Posição Y desejada
+};
+
+struct p_ac_enter_map {
+    uint16_t packet_id;       // HEADER_AC_ENTER_MAP
+    uint8_t status;           // 1 = aceito, 0 = recusado
+    uint16_t map_id;          // Mapa aceito
+    uint16_t x;               // Posição X de entrada
+    uint16_t y;               // Posição Y de entrada
 };
 
 #pragma pack(pop)
