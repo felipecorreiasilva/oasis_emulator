@@ -11,15 +11,20 @@ enum e_packet_id : uint16_t {
     // Custom/Testes
     HEADER_PING = 0x0001,
 
-    // Oficiais/Adaptados (Exemplo de mapeamento do rAthena)
+    // rAthena / compatibilidade de pacotes
     HEADER_CA_LOGIN = 0x0064, // Cliente requisitando Login (Tradicional 0x0064)
     HEADER_CA_CHARLIST = 0x0065, // Cliente requisita lista de personagens (custom)
     HEADER_CH_SELECT_CHAR = 0x0066, // Cliente seleciona personagem (rAthena compatível)
+    HEADER_CH_MAKE_CHAR = 0x0067, // Cliente cria personagem (rAthena)
     HEADER_CA_ENTER_MAP = 0x006b, // Cliente solicita entrada no mapa
     HEADER_AC_ENTER_MAP = 0x006c, // Servidor confirma entrada no mapa
     HEADER_AC_CHARLIST = 0x00A0, // Servidor responde com lista de personagens (custom)
     HEADER_AC_ACCEPT_LOGIN = 0x0069, // Login aceito, envia lista de Char-Servers
     HEADER_AC_REFUSE_LOGIN = 0x006a, // Login recusado (Senha errada, banido, etc)
+    HEADER_HC_ACCEPT_ENTER = 0x006b, // rAthena: servidor envia lista de personagens
+    HEADER_HC_REFUSE_ENTER = 0x006c, // rAthena: servidor recusa a entrada
+    HEADER_HC_ACCEPT_MAKECHAR = 0x006d, // rAthena: personagem criado com sucesso
+    HEADER_HC_REFUSE_MAKECHAR = 0x006e, // rAthena: falha ao criar personagem
     HEADER_HC_NOTIFY_ZONESVR = 0x0071 // Servidor informa IP/porta do Map Server
 };
 
@@ -78,6 +83,28 @@ struct p_ac_charlist_entry {
 struct p_ch_select_char {
     uint16_t packet_id;       // HEADER_CH_SELECT_CHAR
     uint8_t slot;             // Slot de personagem selecionado
+};
+
+struct p_ch_make_char {
+    uint16_t packet_id;       // HEADER_CH_MAKE_CHAR
+    char name[24];            // Nome do personagem
+    uint8_t slot;             // Slot escolhido
+    uint16_t hair_color;      // Cor do cabelo
+    uint16_t hair_style;      // Estilo do cabelo
+    uint32_t job;             // Classe inicial
+    uint8_t sex;              // Sexo do personagem
+};
+
+struct p_hc_accept_makechar {
+    uint16_t packet_id;       // HEADER_HC_ACCEPT_MAKECHAR
+    uint8_t result;           // 1 = aceito
+    uint32_t char_id;         // ID do novo personagem
+    char name[24];            // Nome do novo personagem
+};
+
+struct p_hc_refuse_makechar {
+    uint16_t packet_id;       // HEADER_HC_REFUSE_MAKECHAR
+    uint8_t error_code;       // Motivo da recusa
 };
 
 struct p_hc_notify_zonesvr {
