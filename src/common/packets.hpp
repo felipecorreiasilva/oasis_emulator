@@ -3,6 +3,9 @@
 
 #include <cstdint>
 
+
+constexpr int MAX_CHAR_SLOTS = 9;
+
 // ============================================================================
 // OPCODES DE REDE (IDs dos Pacotes)
 // Seguindo o padrão de nomenclatura Origem_Destino do rAthena
@@ -72,13 +75,15 @@ struct p_ac_charlist_header {
 };
 
 struct p_ac_charlist_entry {
-    uint32_t char_id;         // ID interno do personagem
-    char name[24];            // Nome do personagem
-    uint8_t level;            // Nível do personagem
-    uint16_t map_id;          // Mapa inicial
-    float x;                  // Posição X inicial
-    float y;                  // Posição Y inicial
-};
+    uint32_t char_id;    // 4 bytes
+    uint8_t char_num;    // 1 byte
+    char name[24];       // 24 bytes
+    uint8_t level;       // 1 byte
+    uint8_t sex;         // 1 byte
+    uint8_t hair;        // 1 byte
+    uint16_t map_id;     // 2 bytes (Novo campo!)
+}; 
+// Tamanho total: 34 bytes
 
 struct p_ch_select_char {
     uint16_t packet_id;       // HEADER_CH_SELECT_CHAR

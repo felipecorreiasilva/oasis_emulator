@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `login` (
 CREATE TABLE IF NOT EXISTS `char` (
   `char_id` int unsigned NOT NULL AUTO_INCREMENT,
   `account_id` int unsigned NOT NULL DEFAULT 0,
+  `char_num` tinyint(1) NOT NULL DEFAULT 0,
   `name` varchar(24) NOT NULL DEFAULT '',
   `base_level` smallint unsigned NOT NULL DEFAULT 1,
   `job` smallint unsigned NOT NULL DEFAULT 0,

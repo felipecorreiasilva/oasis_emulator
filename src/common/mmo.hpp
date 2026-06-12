@@ -14,6 +14,12 @@ enum class enum_sex : uint8_t {
     sex_server = 2
 };
 
+struct ServerConfig {
+    char map_ip[16];
+    uint16_t map_port;
+};
+extern ServerConfig g_config;
+
 // IDs das Classes Originais do Ragnarok (Mantido no Oasis)
 enum class enum_class : uint16_t {
     class_novice = 0,  // O seu Aprendiz Inicial 2.5D
