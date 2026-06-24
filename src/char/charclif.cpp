@@ -31,19 +31,19 @@ int parse_char(int fd, SessionData& session) {
     uint16_t packet_id = *reinterpret_cast<uint16_t*>(session.rdata.data());
 
     switch (packet_id) {
-    case HEADER_PING: {
+    case COMMON_PING: {
         std::cout << "[OasisChar] Recebido PING do FD: " << fd << std::endl;
-        uint16_t response = HEADER_PING;
+        uint16_t response = COMMON_PING;
         session_write(session, &response, sizeof(response));
         return 2;
     }
 
-    case HEADER_CA_CHARLIST: {
-    if (session.rdata.size() < sizeof(p_ca_charlist)) {
+    case CHAR_LIST_REQUEST: {
+    if (session.rdata.size() < sizeof(PACKET_CHAR_LIST_REQUEST)) {
         return 0;
     }
 
-    p_ca_charlist* req = reinterpret_cast<p_ca_charlist*>(session.rdata.data());
+    PACKET_CHAR_LIST_REQUEST* req = reinterpret_cast<PACKET_CHAR_LIST_REQUEST*>(session.rdata.data());
     session.account_id = req->user_id;
     std::cout << "[OasisChar] Requisicao de charlist para user_id: " << req->user_id << std::endl;
 
@@ -57,10 +57,10 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         return -1;
     }
 
-    std::vector<p_ac_charlist_entry> entries;
+    std::vector<PACKET_CHAR_LIST_ENTRY> entries;
     MYSQL_ROW row = nullptr;
     while ((row = db_handle.fetch_row())) {
-        p_ac_charlist_entry entry{};
+        PACKET_CHAR_LIST_ENTRY entry{};
         
         // Mapeamento dos campos
         entry.char_id = static_cast<uint32_t>(std::stoul(row[0] ? row[0] : "0"));
@@ -78,8 +78,8 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         entries.push_back(entry);
     }
 
-    p_ac_charlist_header header{};
-    header.packet_id = HEADER_AC_CHARLIST;
+    PACKET_CHAR_LIST header{};
+    header.packet_id = CHAR_LIST;
     header.count = static_cast<uint8_t>(entries.size());
     session_write(session, &header, sizeof(header));
 
@@ -87,20 +87,20 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         session_write(session, &entry, sizeof(entry));
     }
 
-    return sizeof(p_ca_charlist);
+    return sizeof(PACKET_CHAR_LIST_REQUEST);
 }
 
-    case HEADER_CH_SELECT_CHAR: {
-        if (session.rdata.size() < sizeof(p_ch_select_char)) {
+    case CHAR_SELECT: {
+        if (session.rdata.size() < sizeof(PACKET_CHAR_SELECT)) {
             return 0;
         }
 
-        p_ch_select_char* req = reinterpret_cast<p_ch_select_char*>(session.rdata.data());
+        PACKET_CHAR_SELECT* req = reinterpret_cast<PACKET_CHAR_SELECT*>(session.rdata.data());
         std::cout << "[OasisChar] Slot de personagem selecionado: " << static_cast<int>(req->slot) << std::endl;
 
         if (session.account_id == 0) {
             std::cerr << "[OasisChar] Nenhuma conta autenticada associada a esta sessao." << std::endl;
-            return sizeof(p_ch_select_char);
+            return sizeof(PACKET_CHAR_SELECT);
         }
 
         std::string query = "SELECT char_id, map_id, last_x, last_y, last_z FROM `char` WHERE account_id = " + 
@@ -109,13 +109,13 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
 
         if (!db_handle.query_select(query)) {
             std::cerr << "[OasisChar] Erro ao buscar personagem no slot " << (int)req->slot << " no banco." << std::endl;
-            return sizeof(p_ch_select_char);
+            return sizeof(PACKET_CHAR_SELECT);
         }
 
         MYSQL_ROW row = db_handle.fetch_row();
         if (!row) {
             std::cerr << "[OasisChar] Slot de personagem invalido para account_id: " << session.account_id << std::endl;
-            return sizeof(p_ch_select_char);
+            return sizeof(PACKET_CHAR_SELECT);
         }
 
         uint32_t char_id = static_cast<uint32_t>(std::stoul(row[0] ? row[0] : "0"));
@@ -123,23 +123,23 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         float x = std::stof(row[2] ? row[2] : "150.0");
         float y = std::stof(row[3] ? row[3] : "120.0");
 
-        p_hc_notify_zonesvr response{};
-        response.packet_id = HEADER_HC_NOTIFY_ZONESVR;
+        PACKET_ZONE_SERVER_INFO response{};
+        response.packet_id = ZONE_SERVER_INFO;
         response.char_id = char_id;
         strcpy_s(response.mapname, sizeof(response.mapname), "prt_fild01");
         response.ip = 0x0100007F; // 127.0.0.1 little-endian
         response.port = 5121;
 
         session_write(session, &response, sizeof(response));
-        return sizeof(p_ch_select_char);
+        return sizeof(PACKET_CHAR_SELECT);
     }
 
-    case HEADER_CH_MAKE_CHAR: {
-        if (session.rdata.size() < sizeof(p_ch_make_char)) {
+    case CHAR_CREATE: {
+        if (session.rdata.size() < sizeof(PACKET_CHAR_CREATE)) {
             return 0;
         }
 
-        p_ch_make_char* req = reinterpret_cast<p_ch_make_char*>(session.rdata.data());
+        PACKET_CHAR_CREATE* req = reinterpret_cast<PACKET_CHAR_CREATE*>(session.rdata.data());
         std::string name(req->name);
         std::string escaped_name = sql_escape_literal(name);
 
@@ -151,21 +151,21 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         if (session.account_id == 0) {
             std::cerr << "[OasisChar] Nenhuma conta autenticada associada a esta sessao." << std::endl;
 
-            p_hc_refuse_makechar refuse{};
-            refuse.packet_id = HEADER_HC_REFUSE_MAKECHAR;
+            PACKET_CHAR_CREATE_FAILED refuse{};
+            refuse.packet_id = CHAR_CREATE_FAILED;
             refuse.error_code = 1;
             session_write(session, &refuse, sizeof(refuse));
-            return sizeof(p_ch_make_char);
+            return sizeof(PACKET_CHAR_CREATE);
         }
 
         if (name.empty()) {
             std::cerr << "[OasisChar] Nome de personagem vazio." << std::endl;
 
-            p_hc_refuse_makechar refuse{};
-            refuse.packet_id = HEADER_HC_REFUSE_MAKECHAR;
+            PACKET_CHAR_CREATE_FAILED refuse{};
+            refuse.packet_id = CHAR_CREATE_FAILED;
             refuse.error_code = 2;
             session_write(session, &refuse, sizeof(refuse));
-            return sizeof(p_ch_make_char);
+            return sizeof(PACKET_CHAR_CREATE);
         }
 
         std::string check_query = "SELECT char_id FROM `char` WHERE name = '" + escaped_name + "' LIMIT 1";
@@ -177,20 +177,20 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         if (db_handle.fetch_row()) {
             std::cerr << "[OasisChar] Nome de personagem ja existe: " << name << std::endl;
 
-            p_hc_refuse_makechar refuse{};
-            refuse.packet_id = HEADER_HC_REFUSE_MAKECHAR;
+            PACKET_CHAR_CREATE_FAILED refuse{};
+            refuse.packet_id = CHAR_CREATE_FAILED;
             refuse.error_code = 3;
             session_write(session, &refuse, sizeof(refuse));
-            return sizeof(p_ch_make_char);
+            return sizeof(PACKET_CHAR_CREATE);
         }
 
         if (req->slot >= MAX_CHAR_SLOTS) {
             std::cerr << "[OasisChar] Tentativa de criar em slot inexistente: " << (int)req->slot << std::endl;
-            p_hc_refuse_makechar refuse{};
-            refuse.packet_id = HEADER_HC_REFUSE_MAKECHAR;
+            PACKET_CHAR_CREATE_FAILED refuse{};
+            refuse.packet_id = CHAR_CREATE_FAILED;
             refuse.error_code = 5; // Defina um código de erro apropriado para "Slot Inválido"
             session_write(session, &refuse, sizeof(refuse));
-            return sizeof(p_ch_make_char);
+            return sizeof(PACKET_CHAR_CREATE);
         }
 
         db_handle.free_result();
@@ -208,11 +208,11 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         if (!db_handle.query(insert_query)) {
             std::cerr << "[OasisChar] Falha ao inserir novo personagem no banco." << std::endl;
 
-            p_hc_refuse_makechar refuse{};
-            refuse.packet_id = HEADER_HC_REFUSE_MAKECHAR;
+            PACKET_CHAR_CREATE_FAILED refuse{};
+            refuse.packet_id = CHAR_CREATE_FAILED;
             refuse.error_code = 4;
             session_write(session, &refuse, sizeof(refuse));
-            return sizeof(p_ch_make_char);
+            return sizeof(PACKET_CHAR_CREATE);
         }
 
         std::string id_query = "SELECT LAST_INSERT_ID()";
@@ -224,14 +224,14 @@ std::string query = "SELECT char_id, char_num, name, base_level, sex, hair, map_
         MYSQL_ROW id_row = db_handle.fetch_row();
         uint32_t char_id = id_row ? static_cast<uint32_t>(std::stoul(id_row[0] ? id_row[0] : "0")) : 0;
 
-        p_hc_accept_makechar accept{};
-        accept.packet_id = HEADER_HC_ACCEPT_MAKECHAR;
+        PACKET_CHAR_CREATE_SUCCESS accept{};
+        accept.packet_id = CHAR_CREATE_SUCCESS;
         accept.result = 1;
         accept.char_id = char_id;
         strcpy_s(accept.name, sizeof(accept.name), req->name);
 
         session_write(session, &accept, sizeof(accept));
-        return sizeof(p_ch_make_char);
+        return sizeof(PACKET_CHAR_CREATE);
     }
 
     default:

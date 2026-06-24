@@ -15,19 +15,19 @@ int parse_login(int fd, SessionData& session) {
     uint16_t packet_id = *reinterpret_cast<uint16_t*>(session.rdata.data());
 
     switch (packet_id) {
-    case HEADER_PING: {
+    case COMMON_PING: {
         std::cout << "[OasisLogin] Recebido comando PING do FD: " << fd << std::endl;
-        uint16_t response = HEADER_PING;
+        uint16_t response = COMMON_PING;
         session_write(session, &response, sizeof(response));
         return 2;
     }
 
-    case HEADER_CA_LOGIN: {
-        if (session.rdata.size() < sizeof(p_ca_login)) {
+    case LOGIN_REQUEST: {
+        if (session.rdata.size() < sizeof(PACKET_LOGIN_REQUEST)) {
             return 0;
         }
 
-        p_ca_login* req = reinterpret_cast<p_ca_login*>(session.rdata.data());
+        PACKET_LOGIN_REQUEST* req = reinterpret_cast<PACKET_LOGIN_REQUEST*>(session.rdata.data());
 
         // Convertendo os arrays de char estáticos para std::string tratáveis
         std::string user(req->username);
@@ -54,12 +54,12 @@ int parse_login(int fd, SessionData& session) {
         if (!row) {
             std::cout << "[OasisLogin] Falha de Autenticacao: Usuario '" << user << "' nao existe." << std::endl;
 
-            p_ac_refuse_login refuse{};
-            refuse.packet_id = HEADER_AC_REFUSE_LOGIN;
+            PACKET_LOGIN_DENIED refuse{};
+            refuse.packet_id = LOGIN_DENIED;
             refuse.error_code = 1; // Código 1: Conta Inexistente (Padrão rAthena)
             session_write(session, &refuse, sizeof(refuse));
 
-            return sizeof(p_ca_login); // Consome o pacote e encerra o fluxo do bloco
+            return sizeof(PACKET_LOGIN_REQUEST); // Consome o pacote e encerra o fluxo do bloco
         }
 
         // Recupera as colunas retornadas de acordo com as posições do SELECT
@@ -71,20 +71,20 @@ int parse_login(int fd, SessionData& session) {
         if (pass != db_pass) {
             std::cout << "[OasisLogin] Falha de Autenticacao: Senha incorreta para o usuario '" << user << "'." << std::endl;
 
-            p_ac_refuse_login refuse{};
-            refuse.packet_id = HEADER_AC_REFUSE_LOGIN;
+            PACKET_LOGIN_DENIED refuse{};
+            refuse.packet_id = LOGIN_DENIED;
             refuse.error_code = 0; // Código 0: Senha incorreta (Padrão rAthena)
             session_write(session, &refuse, sizeof(refuse));
 
-            return sizeof(p_ca_login);
+            return sizeof(PACKET_LOGIN_REQUEST);
         }
 
         // 4. SUCESSO COMPLETO! Monta e entrega o pacote de aceitação preenchido dinamicamente
         std::cout << "[OasisLogin] >>> USUARIO AUTENTICADO COM SUCESSO! <<<" << std::endl;
         std::cout << "  -> Account ID vinculado: " << db_account_id << std::endl;
 
-        p_ac_accept_login response{};
-        response.packet_id = HEADER_AC_ACCEPT_LOGIN;
+        PACKET_LOGIN_ACCEPTED response{};
+        response.packet_id = LOGIN_ACCEPTED;
 
         // IDs randômicos de segurança de sessão para o handshake posterior com o Char-Server
         response.login_id1 = rand() % 999999;
@@ -93,10 +93,10 @@ int parse_login(int fd, SessionData& session) {
         response.user_id = db_account_id; // Entrega o account_id real vindo do banco
         response.sex = (db_sex == "M") ? 1 : 0; // Converte o char "M" do banco para o id aceito pelo emulador
 
-        std::cout << "[OasisLogin] Enviando HEADER_AC_ACCEPT_LOGIN real para o FD: " << fd << std::endl;
+        std::cout << "[OasisLogin] Enviando LOGIN_ACCEPTED real para o FD: " << fd << std::endl;
         session_write(session, &response, sizeof(response));
 
-        return sizeof(p_ca_login);
+        return sizeof(PACKET_LOGIN_REQUEST);
     }
 
     default:
