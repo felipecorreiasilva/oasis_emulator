@@ -15,7 +15,8 @@ enum e_packet_id : uint16_t {
     LOGIN_REQUEST          = 0x0100, // Cliente envia usuário, senha e versão do client para autenticação.
     LOGIN_ACCEPTED         = 0x0101, // Servidor confirma login e envia dados da conta
     LOGIN_DENIED           = 0x0102, // Servidor recusa login (erro de senha, conta inexistente, etc)
-
+    CHAR_SERVER_INFO         = 0x0103, // Servidor envia IP/Porta do Char Server após login bem-sucedido
+    
     // Character (0x02xx)
     CHAR_LIST_REQUEST      = 0x0200, // Cliente solicita a lista de personagens da conta
     CHAR_LIST              = 0x0201, // Servidor envia a lista de personagens para o cliente
@@ -54,6 +55,12 @@ struct PACKET_LOGIN_ACCEPTED {
 struct PACKET_LOGIN_DENIED {
     uint16_t packet_id;
     uint8_t error_code;
+};
+
+struct PACKET_CHAR_SERVER_INFO {
+    uint16_t packet_id; // Deverá ser 0x0103
+    uint32_t ip;        // IP do Char Server (ex: 127.0.0.1 -> 0x0100007F)
+    uint16_t port;      // Porta do Char Server (6121)
 };
 
 // ============================================================================
